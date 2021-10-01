@@ -1,0 +1,5 @@
+.stack-work/
+*~
+net-conf-flattener-h.cabal
+.vscode/phoityne.log
+.vscode/launch.json

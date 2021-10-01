@@ -1,0 +1,48 @@
+name:                net-conf-flattener-h
+version:             0.1.0.0
+github:              "thugcee/net-conf-flattener-h"
+license:             BSD3
+author:              "Seweryn Niemiec"
+maintainer:          "sew@eioki.eu"
+copyright:           "(C) 2020 Seweryn Niemiec"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            application
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/thugcee/net-conf-flattener-h#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+
+executables:
+  net-conf-flattener-h-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - net-conf-flattener-h
+
+tests:
+  net-conf-flattener-h-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - net-conf-flattener-h
