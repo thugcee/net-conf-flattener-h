@@ -4,21 +4,22 @@ import System.IO
 import System.Environment
 import Lib
 
+import Control.Monad
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
 
 main :: IO ()
-main = getArgs >>= mapM_ (loadAndProcess flatten)
+main = getArgs >>= mapM_ (loadArgFileName >=> display . flatten)
 
 
-loadAndProcess :: (Text -> Either Text Lib.Error) -> String -> IO ()
-loadAndProcess f "-" = T.hGetContents System.IO.stdin >>= process f
-loadAndProcess f filename = withFile filename ReadMode (\handle -> T.hGetContents handle >>= process f)
+loadArgFileName :: String -> IO Text
+loadArgFileName "-" = T.hGetContents System.IO.stdin
+loadArgFileName filename = T.readFile filename
 
 
-process :: (Text -> Either Text Lib.Error) -> Text -> IO ()
-process f text =  case f text of
+display :: Either Text Lib.Error -> IO ()
+display result =  case result of
    Left text2 -> putStrLn $ T.unpack text2
    Right errorMsg -> hPutStrLn stderr $ T.unpack errorMsg
