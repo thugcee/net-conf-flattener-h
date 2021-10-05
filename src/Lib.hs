@@ -1,12 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Lib
-    ( flatten, Error, pythonIndex, processJuniper, flattenJuniper
+    ( flatten, Error, pythonIndex, processJuniper, getNextStatement
     ) where
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Internal.Builder as T
-import Debug.Trace
 
 type Error = Text
 data ConfType = Juniper | Cisco | UnknownConf deriving (Eq, Enum, Show)
@@ -39,29 +37,30 @@ isCisco lastLn = lastLn == "end"
 
 
 processCisco :: [Text] -> Text
-processCisco lines = "Cisco"
+processCisco _ = "Cisco"
 
 
 processJuniper :: [Text] -> [Text] -> [Text] -> Text
-processJuniper flat context [] = T.unlines $ reverse flat
-processJuniper flat context [last] = processJuniper (last:flat) [] []
+processJuniper flat _ [] = T.unlines $ reverse flat
+processJuniper flat _ [lastLn] = processJuniper (lastLn:flat) [] []
 processJuniper flat context structural =
-    let (flatStatement, rest) = flattenJuniper context structural
-        (statement:section) = flatStatement
+    let (flatStatement, rest) = getNextStatement context structural
+        (_:section) = flatStatement
         joinedStatement = T.intercalate " " $ reverse flatStatement
     in
         processJuniper (joinedStatement:flat) section rest
 
-flattenJuniper :: [Text] -> [Text] -> ([Text], [Text])
-flattenJuniper context [] = (context, [])
-flattenJuniper context [last] = (last:context, [])
-flattenJuniper context (first:rest) =
+
+getNextStatement :: [Text] -> [Text] -> ([Text], [Text])
+getNextStatement context [] = (context, [])
+getNextStatement context [lastLn] = (lastLn:context, [])
+getNextStatement context (first:rest) =
     case pythonIndex 1 first of
         "#" -> (first:context, rest)
         _ -> case pythonIndex (-1) first of
-            "{" -> flattenJuniper (T.strip (T.dropEnd 1 first):context) rest
+            "{" -> getNextStatement (T.strip (T.dropEnd 1 first):context) rest
             ";" -> (T.strip first:context, rest)
-            "}" -> let (_:contextUp) = context in flattenJuniper contextUp rest
+            "}" -> let (_:contextUp) = context in getNextStatement contextUp rest
             _ -> error "parsing error"
 
 
